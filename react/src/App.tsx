@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Plus, BarChart3 } from 'lucide-react'
 import type { Product, ReviewAnalysisResult, Review, Stats } from './api/reviewService'
 import reviewService from './api/reviewService'
@@ -27,38 +27,8 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [showCreateProduct, setShowCreateProduct] = useState(false)
 
-  // Initial load
-  useEffect(() => {
-    const init = async () => {
-      try {
-        await reviewService.healthCheck()
-        await loadProducts()
-      } catch (err) {
-        setError(`Backend connection failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
-        setLoadingProducts(false)
-      }
-    }
-    init()
-  }, [])
-
-  // Load products
-  const loadProducts = async () => {
-    try {
-      const data = await reviewService.getProducts()
-      setProducts(data)
-      if (data.length > 0 && !selectedProductId) {
-        setSelectedProductId(data[0].id)
-        await loadReviewsForProduct(data[0].id)
-      }
-      setLoadingProducts(false)
-    } catch (err) {
-      setError(`Failed to load products: ${err instanceof Error ? err.message : 'Unknown error'}`)
-      setLoadingProducts(false)
-    }
-  }
-
   // Load reviews and stats for a product
-  const loadReviewsForProduct = async (productId: number) => {
+  const loadReviewsForProduct = useCallback(async (productId: number) => {
     setLoadingReviews(true)
     setLoadingStats(true)
     try {
@@ -74,7 +44,37 @@ function App() {
       setLoadingReviews(false)
       setLoadingStats(false)
     }
-  }
+  }, [])
+
+  // Load products
+  const loadProducts = useCallback(async () => {
+    try {
+      const data = await reviewService.getProducts()
+      setProducts(data)
+      if (data.length > 0 && !selectedProductId) {
+        setSelectedProductId(data[0].id)
+        await loadReviewsForProduct(data[0].id)
+      }
+      setLoadingProducts(false)
+    } catch (err) {
+      setError(`Failed to load products: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      setLoadingProducts(false)
+    }
+  }, [selectedProductId, loadReviewsForProduct])
+
+  // Initial load
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await reviewService.healthCheck()
+        await loadProducts()
+      } catch (err) {
+        setError(`Backend connection failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+        setLoadingProducts(false)
+      }
+    }
+    init()
+  }, [loadProducts])
 
   // Handle product selection
   const handleProductSelect = async (productId: number) => {
