@@ -1,21 +1,9 @@
 /**
- * Data context for managing products and reviews state
+ * Data context provider component
  */
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Product, Review, Stats } from '../types';
-
-interface DataContextType {
-  products: Product[];
-  setProducts: (products: Product[]) => void;
-  selectedProductId: number | null;
-  setSelectedProductId: (id: number | null) => void;
-  reviews: Review[];
-  setReviews: (reviews: Review[]) => void;
-  stats: Stats | null;
-  setStats: (stats: Stats | null) => void;
-}
-
-const DataContext = createContext<DataContextType | undefined>(undefined);
+import React, { useState, type ReactNode } from 'react';
+import { DataContext, type DataContextType } from './createDataContext';
+import type { Product, Review, Stats } from '../types';
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -39,12 +27,4 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       {children}
     </DataContext.Provider>
   );
-};
-
-export const useData = (): DataContextType => {
-  const context = useContext(DataContext);
-  if (!context) {
-    throw new Error('useData must be used within DataProvider');
-  }
-  return context;
 };

@@ -1,7 +1,7 @@
 /**
  * HTTP client service with interceptors
  */
-import { APIError } from '../utils/errors';
+import { APIError } from '../utils/apiClient';
 import { RequestInterceptor, ResponseInterceptor } from '../utils/interceptors';
 
 export class HttpClient {

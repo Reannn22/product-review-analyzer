@@ -46,19 +46,23 @@ export class ResponseInterceptor {
   }
 }
 
-// Default interceptors
-RequestInterceptor.use((request) => {
-  const token = localStorage.getItem('auth_token');
-  if (token) {
-    request.headers.set('Authorization', `Bearer ${token}`);
-  }
-  return request;
-});
+// Setup configuration for interceptors (call this once in app initialization)
+export const requestInterceptorConfig = {
+  addAuthToken: (request: Request) => {
+    const token = localStorage.getItem('auth_token');
+    if (token && request.headers instanceof Headers) {
+      request.headers.set('Authorization', `Bearer ${token}`);
+    }
+    return request;
+  },
+};
 
-ResponseInterceptor.use((response) => {
-  if (response.status === 401) {
-    console.log('Unauthorized - redirecting to login');
-    // Handle unauthorized
-  }
-  return response;
-});
+export const responseInterceptorConfig = {
+  handleUnauthorized: (response: Response) => {
+    if (response.status === 401) {
+      console.log('Unauthorized - redirecting to login');
+      // Handle unauthorized
+    }
+    return response;
+  },
+};

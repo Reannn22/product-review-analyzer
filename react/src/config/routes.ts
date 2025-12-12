@@ -2,14 +2,14 @@
  * Router configuration and navigation utilities
  */
 
-export enum Routes {
-  HOME = '/',
-  PRODUCTS = '/products',
-  PRODUCT_DETAIL = '/products/:id',
-  REVIEWS = '/reviews',
-  SETTINGS = '/settings',
-  NOT_FOUND = '/404',
-}
+export const Routes = {
+  HOME: '/',
+  PRODUCTS: '/products',
+  PRODUCT_DETAIL: '/products/:id',
+  REVIEWS: '/reviews',
+  SETTINGS: '/settings',
+  NOT_FOUND: '/404',
+} as const;
 
 export interface NavItem {
   label: string;
@@ -24,8 +24,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Settings', path: Routes.SETTINGS, icon: 'settings' },
 ];
 
-export function getRoutePath(route: Routes, params?: Record<string, string>): string {
-  let path = route;
+export function getRoutePath(route: typeof Routes[keyof typeof Routes], params?: Record<string, string>): string {
+  let path: string = route;
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       path = path.replace(`:${key}`, value);

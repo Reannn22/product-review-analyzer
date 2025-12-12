@@ -6,13 +6,14 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localho
 export const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT ? parseInt(import.meta.env.VITE_API_TIMEOUT) : 30000;
 
 export class APIError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-    public data?: unknown
-  ) {
+  status: number;
+  data?: unknown;
+  
+  constructor(status: number, message: string, data?: unknown) {
     super(message);
     this.name = 'APIError';
+    this.status = status;
+    this.data = data;
   }
 }
 

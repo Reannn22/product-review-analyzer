@@ -237,6 +237,7 @@ Frontend will be available at: `http://localhost:5173`
   ```
 
   **Response**:
+
   ```json
   {
     "id": 1,
@@ -244,11 +245,7 @@ Frontend will be available at: `http://localhost:5173`
     "review_text": "This product is amazing! Great quality and fast shipping.",
     "sentiment": "positive",
     "sentiment_score": 0.9987,
-    "key_points": [
-      "Great quality",
-      "Fast shipping",
-      "Amazing product"
-    ],
+    "key_points": ["Great quality", "Fast shipping", "Amazing product"],
     "created_at": "2025-12-12T10:30:00Z"
   }
   ```
@@ -313,16 +310,19 @@ VITE_API_URL=http://localhost:8000
 ## Usage Guide
 
 1. **Create a Product**:
+
    - Click "+ New Product" button in header
    - Enter product name and description
    - Click "Create Product"
 
 2. **Submit a Review**:
+
    - Select a product from product selector
    - Enter your review in the text area (minimum 10 characters)
    - Click "Analyze Review"
 
 3. **View Results**:
+
    - Sentiment analysis with confidence score appears instantly
    - Key points extracted from your review are displayed
    - Review is saved to the database automatically
@@ -336,19 +336,21 @@ VITE_API_URL=http://localhost:8000
 
 The application includes comprehensive error handling:
 
-- **Backend**: 
+- **Backend**:
+
   - FastAPI validation using Pydantic
   - Exception handlers for API errors
   - Database connection error handling
   - API timeout and retry logic
 
-- **Frontend**: 
+- **Frontend**:
+
   - Error messages displayed in red alert boxes
   - Dismiss button to clear error messages
   - Loading states with spinner
   - Graceful fallbacks for API failures
 
-- **Database**: 
+- **Database**:
   - Connection pooling
   - Automatic table creation
   - Transaction rollback on error
@@ -602,6 +604,7 @@ December 2025
 ## Support
 
 For issues, questions, or suggestions:
+
 1. Check the error messages and console logs
 2. Refer to the troubleshooting section above
 3. Review the GitHub issues page
@@ -611,7 +614,6 @@ For issues, questions, or suggestions:
 
 **Last Updated**: December 12, 2025  
 **Status**: Complete ✅
-
 
 ## Project Structure
 

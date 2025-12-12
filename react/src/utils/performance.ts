@@ -43,8 +43,9 @@ export function logMetric(name: string, value: number, unit: string = ''): void 
 }
 
 export function reportWebVitals(): void {
-  if ('web-vital' in window) {
-    const vitals = (window as any)['web-vital'];
+  const windowObj = typeof window !== 'undefined' ? window : null;
+  if (windowObj && 'web-vital' in windowObj) {
+    const vitals = (windowObj as Record<string, unknown>)['web-vital'];
     console.log('Web Vitals:', vitals);
   }
 }

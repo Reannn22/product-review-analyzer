@@ -2,20 +2,24 @@
  * Error handling utilities
  */
 
+type AppErrorCode = 'VALIDATION_ERROR' | 'NOT_FOUND' | 'UNAUTHORIZED' | 'SERVER_ERROR';
+
 export class AppError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public statusCode: number = 500,
-    public details?: unknown
-  ) {
+  code: AppErrorCode;
+  statusCode: number;
+  details?: unknown;
+  
+  constructor(code: AppErrorCode, message: string, statusCode: number = 500, details?: unknown) {
     super(message);
     this.name = 'AppError';
+    this.code = code;
+    this.statusCode = statusCode;
+    this.details = details;
   }
 }
 
 export function createError(
-  code: string,
+  code: AppErrorCode,
   message: string,
   statusCode: number = 500,
   details?: unknown

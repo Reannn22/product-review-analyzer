@@ -90,4 +90,3 @@ export function ProductForm({ onSubmit, onCancel, loading = false }: ProductForm
         </div>
     );
 }
-                     

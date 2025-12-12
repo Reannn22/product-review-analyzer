@@ -1,20 +1,20 @@
-/**
- * Backend middleware for request/response logging and error handling
- */
+"""
+Backend middleware for request/response logging and error handling
+"""
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
-from fastapi.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 import logging
 import time
 import uuid
-from typing import Callable
+from typing import Callable, Any
 
 logger = logging.getLogger(__name__)
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Middleware to log all requests and responses"""
     
-    async def dispatch(self, request: Request, call_next: Callable) -> JSONResponse:
+    async def dispatch(self, request: Request, call_next: Callable) -> Any:
         # Generate unique request ID
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
@@ -57,7 +57,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
     """Middleware to handle and format errors consistently"""
     
-    async def dispatch(self, request: Request, call_next: Callable) -> JSONResponse:
+    async def dispatch(self, request: Request, call_next: Callable) -> Any:
         try:
             response = await call_next(request)
             return response

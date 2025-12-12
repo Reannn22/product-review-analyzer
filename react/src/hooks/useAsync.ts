@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface UseAsyncState<T> {
   status: 'idle' | 'pending' | 'success' | 'error';
@@ -20,26 +20,43 @@ export function useAsync<T>(
     error: null,
   });
 
+  const isMountedRef = useRef(true);
+
   const execute = useCallback(async () => {
     setState({ status: 'pending', data: null, error: null });
     try {
       const response = await asyncFunction();
-      setState({ status: 'success', data: response, error: null });
+      if (isMountedRef.current) {
+        setState({ status: 'success', data: response, error: null });
+      }
       return response;
     } catch (error) {
-      setState({
-        status: 'error',
-        data: null,
-        error: error instanceof Error ? error : new Error(String(error)),
-      });
+      if (isMountedRef.current) {
+        setState({
+          status: 'error',
+          data: null,
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
+      }
     }
   }, [asyncFunction]);
 
   // Execute immediately on mount if specified
   useEffect(() => {
+    let cancelled = false;
+
     if (immediate) {
-      execute();
+      execute().catch((err) => {
+        if (!cancelled) {
+          console.error('Async execution failed:', err);
+        }
+      });
     }
+
+    return () => {
+      cancelled = true;
+      isMountedRef.current = false;
+    };
   }, [execute, immediate]);
 
   return {
