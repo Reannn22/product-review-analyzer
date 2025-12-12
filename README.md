@@ -44,17 +44,21 @@ A full-stack application for analyzing product reviews using sentiment analysis 
 ## Screenshots
 
 ### 1. New Product Form
+
 ![New Product Form](./screenshots/new-product-form.png)
 
 ### 2. Analyze Review
+
 ![Analyze Review](./screenshots/analyze-review.png)
 
 ### 3. Reviews Dashboard
+
 ![Reviews Dashboard](./screenshots/reviews-dashboard.png)
 
 ## Tech Stack
 
 ### Backend
+
 - **Framework**: FastAPI (Python)
 - **Database**: PostgreSQL with SQLAlchemy ORM
 - **Sentiment Analysis**: Hugging Face Transformers
@@ -63,6 +67,7 @@ A full-stack application for analyzing product reviews using sentiment analysis 
 - **Validation**: Pydantic
 
 ### Frontend
+
 - **Framework**: React 19.2.0
 - **Build Tool**: Vite 7.2.4
 - **Language**: TypeScript
@@ -71,6 +76,7 @@ A full-stack application for analyzing product reviews using sentiment analysis 
 - **Linting**: ESLint 9.39.1
 
 ### Database
+
 - **Type**: PostgreSQL 12+
 - **ORM**: SQLAlchemy 2.0
 
@@ -279,19 +285,23 @@ Frontend will be available at: `http://localhost:5173`
 ## API Endpoints
 
 ### Products
+
 - `GET /api/products` - Get all products
 - `POST /api/products` - Create a new product
 - `GET /api/products/{product_id}` - Get a specific product
 
 ### Reviews & Analysis
+
 - `POST /api/analyze-review` - Analyze a review (sentiment + key points)
 - `GET /api/reviews` - Get all reviews (with optional filters)
 - `GET /api/reviews/{review_id}` - Get a specific review
 
 ### Statistics
+
 - `GET /api/stats` - Get sentiment statistics
 
 ### Health
+
 - `GET /health` - Health check endpoint
 
 ## Environment Variables
@@ -325,16 +335,19 @@ VITE_API_URL=http://localhost:8000
 ## Usage Guide
 
 1. **Create a Product**:
+
    - Click "+ New Product" button in header
    - Enter product name and description
    - Click "Create Product"
 
 2. **Submit a Review**:
+
    - Select a product from product selector
    - Enter your review in the text area (minimum 10 characters)
    - Click "Analyze Review"
 
 3. **View Results**:
+
    - Sentiment analysis with confidence score appears instantly
    - Key points extracted from your review are displayed
    - Review is saved to the database automatically
@@ -358,16 +371,19 @@ The application includes comprehensive error handling:
 ### Backend Issues
 
 **Error: "ModuleNotFoundError: No module named 'fastapi'"**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 **Error: "psycopg2: could not connect to server"**
+
 ```bash
 # Ensure PostgreSQL is running and DATABASE_URL is correct in .env
 ```
 
 **Error: "GEMINI_API_KEY not found"**
+
 ```bash
 # Get your key from: https://makersuite.google.com/app/apikey
 # Add to .env file under GEMINI_API_KEY
@@ -376,6 +392,7 @@ pip install -r requirements.txt
 ### Frontend Issues
 
 **Error: "Failed to fetch from backend"**
+
 ```bash
 # Ensure backend is running on http://localhost:8000
 # Check VITE_API_URL in .env.local
@@ -383,6 +400,7 @@ pip install -r requirements.txt
 ```
 
 **Error: "Module not found"**
+
 ```bash
 npm install
 ```
@@ -458,6 +476,7 @@ December 2025
 ## Support
 
 For issues, questions, or suggestions:
+
 1. Check the error messages and console logs
 2. Refer to the troubleshooting section above
 3. Review the GitHub issues page
