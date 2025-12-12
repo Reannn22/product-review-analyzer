@@ -41,6 +41,23 @@ A full-stack application for analyzing product reviews using sentiment analysis 
 - 🎨 **Responsive UI**: Modern, responsive React interface with Lucide icons
 - 🌙 **Dark Mode Support**: Built-in dark/light theme support
 
+## Screenshots
+
+### 1. New Product Form
+Create new products for review analysis with intuitive form interface.
+
+![New Product Form](./screenshots/new-product-form.png)
+
+### 2. Analyze Review
+Submit and analyze product reviews with automatic sentiment detection and key points extraction.
+
+![Analyze Review](./screenshots/analyze-review.png)
+
+### 3. Reviews Dashboard
+Browse all submitted reviews with sentiment indicators and statistics.
+
+![Reviews Dashboard](./screenshots/reviews-dashboard.png)
+
 ## Tech Stack
 
 ### Backend
