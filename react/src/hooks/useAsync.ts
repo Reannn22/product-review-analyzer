@@ -43,18 +43,24 @@ export function useAsync<T>(
 
   // Execute immediately on mount if specified
   useEffect(() => {
-    let cancelled = false;
+    let mounted = true;
 
-    if (immediate) {
-      execute().catch((err) => {
-        if (!cancelled) {
-          console.error('Async execution failed:', err);
+    const runAsync = async () => {
+      if (immediate && mounted) {
+        try {
+          await execute();
+        } catch (err) {
+          if (mounted) {
+            console.error('Async execution failed:', err);
+          }
         }
-      });
-    }
+      }
+    };
+
+    runAsync();
 
     return () => {
-      cancelled = true;
+      mounted = false;
       isMountedRef.current = false;
     };
   }, [execute, immediate]);
