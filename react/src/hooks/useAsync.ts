@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 interface UseAsyncState<T> {
   status: 'idle' | 'pending' | 'success' | 'error';
@@ -36,7 +36,7 @@ export function useAsync<T>(
   }, [asyncFunction]);
 
   // Execute immediately on mount if specified
-  React.useEffect(() => {
+  useEffect(() => {
     if (immediate) {
       execute();
     }
@@ -51,13 +51,13 @@ export function useAsync<T>(
 /**
  * Custom hook for managing form state with validation
  */
-export function useForm<T extends Record<string, any>>(
+export function useForm<T extends Record<string, unknown>>(
   initialValues: T,
   onSubmit: (values: T) => Promise<void>
 ) {
   const [values, setValues] = useState<T>(initialValues);
-  const [touched, setTouched] = useState<Record<keyof T, boolean>>({} as any);
-  const [errors, setErrors] = useState<Record<keyof T, string>>({} as any);
+  const [touched, setTouched] = useState<Record<keyof T, boolean>>({} as Record<keyof T, boolean>);
+  const [errors, setErrors] = useState<Record<keyof T, string>>({} as Record<keyof T, string>);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = useCallback(
@@ -96,8 +96,8 @@ export function useForm<T extends Record<string, any>>(
       try {
         await onSubmit(values);
         setValues(initialValues);
-        setTouched({} as any);
-        setErrors({} as any);
+        setTouched({} as Record<keyof T, boolean>);
+        setErrors({} as Record<keyof T, string>);
       } catch (error) {
         console.error('Form submission error:', error);
       } finally {
@@ -109,8 +109,8 @@ export function useForm<T extends Record<string, any>>(
 
   const resetForm = useCallback(() => {
     setValues(initialValues);
-    setTouched({} as any);
-    setErrors({} as any);
+    setTouched({} as Record<keyof T, boolean>);
+    setErrors({} as Record<keyof T, string>);
     setIsSubmitting(false);
   }, [initialValues]);
 
@@ -124,7 +124,7 @@ export function useForm<T extends Record<string, any>>(
     handleSubmit,
     resetForm,
     setErrors,
-    setFieldValue: (name: keyof T, value: any) =>
+    setFieldValue: (name: keyof T, value: unknown) =>
       setValues((prev) => ({
         ...prev,
         [name]: value,

@@ -4,11 +4,11 @@ import { useCallback, useRef, useEffect } from 'react';
  * Custom hook for debouncing function calls
  * Useful for optimizing expensive operations like API calls
  */
-export function useDebounce<T extends (...args: any[]) => any>(
+export function useDebounce<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): (...args: Parameters<T>) => void {
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>();
 
   useEffect(() => {
     return () => {
@@ -35,12 +35,12 @@ export function useDebounce<T extends (...args: any[]) => any>(
  * Custom hook for throttling function calls
  * Useful for performance optimization on scroll or resize events
  */
-export function useThrottle<T extends (...args: any[]) => any>(
+export function useThrottle<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): (...args: Parameters<T>) => void {
   const lastRunRef = useRef<number>(0);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>();
 
   useEffect(() => {
     return () => {
@@ -79,9 +79,9 @@ export function useLocalStorage<T>(
   key: string,
   initialValue: T
 ): [T, (value: T | ((val: T) => T)) => void] {
-  const [storedValue, setStoredValue] = React.useState<T>(() => {
+  const [value, setValue] = React.useState<T>(() => {
     try {
-      const item = window.localStorage.getItem(key);
+      const item = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null;
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
@@ -89,18 +89,20 @@ export function useLocalStorage<T>(
     }
   });
 
-  const setValue = useCallback(
-    (value: T | ((val: T) => T)) => {
+  const setStoredValue = useCallback(
+    (newValue: T | ((val: T) => T)) => {
       try {
-        const valueToStore = value instanceof Function ? value(storedValue) : value;
-        setStoredValue(valueToStore);
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        const valueToStore = newValue instanceof Function ? newValue(value) : newValue;
+        setValue(valueToStore);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        }
       } catch (error) {
         console.error(`Error setting localStorage key "${key}":`, error);
       }
     },
-    [key, storedValue]
+    [key, value]
   );
 
-  return [storedValue, setValue];
+  return [value, setStoredValue];
 }

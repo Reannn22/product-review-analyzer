@@ -1,7 +1,12 @@
 import React from 'react';
 
-export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`bg-slate-200 dark:bg-slate-700 rounded animate-pulse ${className}`} />
+interface SkeletonProps {
+  className?: string;
+  height?: string;
+}
+
+export const Skeleton: React.FC<SkeletonProps> = ({ className = '', height }) => (
+  <div className={`bg-slate-200 dark:bg-slate-700 rounded animate-pulse ${className}`} style={height ? { height } : undefined} />
 );
 
 interface SkeletonLoaderProps {
@@ -23,7 +28,7 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
             <Skeleton
               key={j}
               className={`${j === lines - 1 ? 'w-3/4' : 'w-full'}`}
-              style={{ height }}
+              height={height}
             />
           ))}
         </div>
