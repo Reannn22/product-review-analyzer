@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from datetime import datetime
 import logging
 from typing import List
+import json
 
 # Import database, models, schemas
 from database import engine, get_db, settings, Base
@@ -15,15 +17,55 @@ from analysis import analyze_review
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create all database tables
-Base.metadata.create_all(bind=engine)
+# Custom JSON encoder for pretty printing
+class PrettyJSONEncoder(json.JSONEncoder):
+    def encode(self, o):
+        # Encode with indent for pretty printing
+        result = super().encode(o)
+        return result
 
-# Initialize FastAPI app
+# Initialize FastAPI app with custom JSON encoder
 app = FastAPI(
     title="Product Review Analyzer API",
     description="API untuk menganalisis sentiment dan extract key points dari product reviews",
-    version="1.0.0"
+    version="1.0.0",
+    json_encoder=PrettyJSONEncoder
 )
+
+# Override JSONResponse to use indent for pretty printing
+class PrettyJSONResponse(JSONResponse):
+    def render(self, content) -> bytes:
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=2,
+            separators=(",", ": "),
+        ).encode("utf-8")
+
+# Update default response class
+from fastapi.responses import ORJSONResponse
+app.default_response_class = PrettyJSONResponse
+
+# Startup event to create tables (deferred from import time)
+@app.on_event("startup")
+def startup_event():
+    """Create database tables on startup"""
+    try:
+        logger.info("Creating database tables...")
+        Base.metadata.create_all(bind=engine)
+        logger.info("✓ Database tables created/verified")
+        
+        # Check API configuration
+        if not settings.GEMINI_API_KEY:
+            logger.warning("⚠️  GEMINI_API_KEY is not set - key points extraction will not work")
+        else:
+            logger.info("✓ Gemini API configured")
+            
+    except Exception as e:
+        logger.error(f"⚠️  Error creating tables: {e}")
+        # Don't fail startup if table creation fails
+        # Tables might already exist
 
 # Setup CORS
 app.add_middleware(
@@ -55,8 +97,9 @@ async def create_product(product: schemas.ProductCreate, db: Session = Depends(g
         return db_product
     except Exception as e:
         db.rollback()
-        logger.error(f"Error creating product: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        error_msg = "Duplicate product name" if "duplicate" in str(e).lower() else "Error creating product"
+        logger.error(f"{error_msg}: {e}")
+        raise HTTPException(status_code=400, detail=error_msg)
 
 @app.get("/api/products", response_model=List[schemas.ProductResponse], tags=["Products"])
 async def get_products(db: Session = Depends(get_db)):
@@ -152,7 +195,7 @@ async def get_reviews(
         raise
     except Exception as e:
         logger.error(f"Error fetching reviews: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Error fetching reviews. Please try again.")
 
 @app.get("/api/reviews/{review_id}", response_model=schemas.ReviewWithProductResponse, tags=["Reviews"])
 async def get_review(review_id: int, db: Session = Depends(get_db)):
@@ -199,7 +242,7 @@ async def get_statistics(product_id: int = None, db: Session = Depends(get_db)):
         }
     except Exception as e:
         logger.error(f"Error fetching statistics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Error fetching statistics. Please try again.")
 
 # ============ Error Handlers ============
 @app.exception_handler(HTTPException)

@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react'
-import './App.css'
-import reviewService, { Product, ReviewAnalysisResult, Review, Stats } from './api/reviewService'
+import { Plus, BarChart3 } from 'lucide-react'
+import type { Product, ReviewAnalysisResult, Review, Stats } from './api/reviewService'
+import reviewService from './api/reviewService'
 import { LoadingState } from './components/LoadingState'
 import { ErrorMessage } from './components/ErrorMessage'
-import { ResultDisplay } from './components/ResultDisplay'
+import { AnalysisResults } from './components/AnalysisResults'
 import { ReviewsList } from './components/ReviewsList'
+import { ProductForm } from './components/ProductForm'
+import { ProductSelector } from './components/ProductSelector'
+import { ReviewForm } from './components/ReviewForm'
+import { StatsDisplay } from './components/StatsDisplay'
 
 function App() {
   // State management
   const [products, setProducts] = useState<Product[]>([])
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
-  const [newProductName, setNewProductName] = useState('')
-  const [newProductDescription, setNewProductDescription] = useState('')
-  const [reviewText, setReviewText] = useState('')
   const [analysisResult, setAnalysisResult] = useState<ReviewAnalysisResult | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
@@ -21,6 +23,7 @@ function App() {
   const [loadingProducts, setLoadingProducts] = useState(true)
   const [loadingAnalysis, setLoadingAnalysis] = useState(false)
   const [loadingReviews, setLoadingReviews] = useState(false)
+  const [loadingStats, setLoadingStats] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showCreateProduct, setShowCreateProduct] = useState(false)
 
@@ -28,9 +31,7 @@ function App() {
   useEffect(() => {
     const init = async () => {
       try {
-        // Check backend health
         await reviewService.healthCheck()
-        // Load products
         await loadProducts()
       } catch (err) {
         setError(`Backend connection failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
@@ -59,6 +60,7 @@ function App() {
   // Load reviews and stats for a product
   const loadReviewsForProduct = async (productId: number) => {
     setLoadingReviews(true)
+    setLoadingStats(true)
     try {
       const [reviewsData, statsData] = await Promise.all([
         reviewService.getProductReviews(productId),
@@ -66,10 +68,11 @@ function App() {
       ])
       setReviews(reviewsData)
       setStats(statsData)
-      setLoadingReviews(false)
     } catch (err) {
       setError(`Failed to load reviews: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
       setLoadingReviews(false)
+      setLoadingStats(false)
     }
   }
 
@@ -80,39 +83,27 @@ function App() {
   }
 
   // Handle create product
-  const handleCreateProduct = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newProductName.trim()) {
-      setError('Product name is required')
-      return
-    }
-
+  const handleCreateProduct = async (name: string, description: string) => {
     try {
-      const newProduct = await reviewService.createProduct(
-        newProductName,
-        newProductDescription
-      )
+      const newProduct = await reviewService.createProduct(name, description)
       setProducts([...products, newProduct])
       setSelectedProductId(newProduct.id)
-      setNewProductName('')
-      setNewProductDescription('')
       setShowCreateProduct(false)
       await loadReviewsForProduct(newProduct.id)
+      setError(null)
     } catch (err) {
       setError(`Failed to create product: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
   }
 
   // Handle review submission
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+  const handleSubmitReview = async (text: string) => {
     if (!selectedProductId) {
       setError('Please select a product')
       return
     }
 
-    if (reviewText.trim().length < 10) {
+    if (text.trim().length < 10) {
       setError('Review must be at least 10 characters long')
       return
     }
@@ -121,9 +112,8 @@ function App() {
     setError(null)
 
     try {
-      const result = await reviewService.analyzeReview(selectedProductId, reviewText)
+      const result = await reviewService.analyzeReview(selectedProductId, text)
       setAnalysisResult(result)
-      setReviewText('')
 
       // Reload reviews and stats
       await loadReviewsForProduct(selectedProductId)
@@ -139,125 +129,101 @@ function App() {
   }
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <div className="header-content">
-          <h1>Product Review Analyzer</h1>
-          <p>Analyze sentiment and extract key insights from product reviews</p>
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col">
+      {/* Header */}
+      <header className="card border-b-2 border-blue-500/20 sticky top-0 z-50 w-full shadow-lg rounded-none">
+        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-4 sm:py-6">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3">
+                <BarChart3 className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600" />
+                <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                  Product Review Analyzer
+                </h1>
+              </div>
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-2">
+                Analyze sentiment and extract key insights from product reviews
+              </p>
+            </div>
+            <button
+              onClick={() => setShowCreateProduct(!showCreateProduct)}
+              className="btn btn-primary w-full sm:w-auto shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              New Product
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="app-main">
-        {error && (
-          <ErrorMessage
-            message={error}
-            onDismiss={() => setError(null)}
+      {/* Main Content */}
+      <main className="flex-1 w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto w-full">
+          {/* Error Message */}
+          {error && (
+            <ErrorMessage
+              message={error}
+              onDismiss={() => setError(null)}
+            />
+          )}
+
+          {/* Create Product Form */}
+          {showCreateProduct && (
+            <ProductForm
+              onSubmit={handleCreateProduct}
+              onCancel={() => setShowCreateProduct(false)}
+            />
+          )}
+
+          {/* Product Selector */}
+          <ProductSelector
+            products={products}
+            selectedProductId={selectedProductId}
+            onSelectProduct={handleProductSelect}
           />
-        )}
 
-        <div className="app-layout">
-          {/* Sidebar - Products */}
-          <aside className="sidebar">
-            <div className="sidebar-section">
-              <h3>Products</h3>
-              {products.length === 0 ? (
-                <p className="sidebar-empty">No products yet</p>
+          {selectedProductId ? (
+            <div className="space-y-4 sm:space-y-6">
+              {/* Review Form */}
+              <ReviewForm
+                onSubmit={handleSubmitReview}
+                loading={loadingAnalysis}
+                disabled={!selectedProductId}
+              />
+
+              {/* Analysis Result */}
+              {analysisResult && <AnalysisResults result={analysisResult} />}
+
+              {/* Statistics */}
+              <StatsDisplay stats={stats} loading={loadingStats} />
+
+              {/* Reviews List */}
+              {loadingReviews ? (
+                <LoadingState message="Loading reviews..." />
               ) : (
-                <div className="products-list">
-                  {products.map((product) => (
-                    <button
-                      key={product.id}
-                      className={`product-button ${selectedProductId === product.id ? 'active' : ''}`}
-                      onClick={() => handleProductSelect(product.id)}
-                    >
-                      {product.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <button
-                className="btn-secondary"
-                onClick={() => setShowCreateProduct(!showCreateProduct)}
-              >
-                {showCreateProduct ? 'Cancel' : '+ Add Product'}
-              </button>
-
-              {showCreateProduct && (
-                <form onSubmit={handleCreateProduct} className="create-product-form">
-                  <input
-                    type="text"
-                    placeholder="Product name"
-                    value={newProductName}
-                    onChange={(e) => setNewProductName(e.target.value)}
-                    required
-                  />
-                  <textarea
-                    placeholder="Description (optional)"
-                    value={newProductDescription}
-                    onChange={(e) => setNewProductDescription(e.target.value)}
-                    rows={3}
-                  />
-                  <button type="submit" className="btn-primary">
-                    Create
-                  </button>
-                </form>
+                <ReviewsList reviews={reviews} />
               )}
             </div>
-          </aside>
-
-          {/* Main Content */}
-          <section className="main-content">
-            {selectedProductId ? (
-              <>
-                {/* Review Form */}
-                <div className="form-section">
-                  <h2>Submit Review</h2>
-                  <form onSubmit={handleSubmitReview} className="review-form">
-                    <textarea
-                      value={reviewText}
-                      onChange={(e) => setReviewText(e.target.value)}
-                      placeholder="Enter your review here... (minimum 10 characters)"
-                      rows={6}
-                      disabled={loadingAnalysis}
-                    />
-                    <div className="form-actions">
-                      <button
-                        type="submit"
-                        className="btn-primary"
-                        disabled={loadingAnalysis || reviewText.trim().length < 10}
-                      >
-                        {loadingAnalysis ? 'Analyzing...' : 'Analyze Review'}
-                      </button>
-                      <span className="char-count">
-                        {reviewText.length} / 5000 characters
-                      </span>
-                    </div>
-                  </form>
-                </div>
-
-                {/* Analysis Result */}
-                {loadingAnalysis ? (
-                  <LoadingState message="Analyzing your review..." />
-                ) : (
-                  analysisResult && <ResultDisplay result={analysisResult} />
-                )}
-
-                {/* Reviews List */}
-                {loadingReviews ? (
-                  <LoadingState message="Loading reviews..." />
-                ) : (
-                  <ReviewsList reviews={reviews} stats={stats} />
-                )}
-              </>
-            ) : (
-              <div className="no-product">
-                <p>No product selected. Create or select a product to get started.</p>
-              </div>
-            )}
-          </section>
+          ) : (
+            <div className="card text-center p-8 sm:p-12">
+              <p className="text-slate-500 dark:text-slate-400 text-base sm:text-lg font-medium">
+                No product selected. Create or select a product to get started!
+              </p>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="card rounded-none border-t-2 border-slate-200 dark:border-slate-700 w-full">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="max-w-7xl mx-auto text-center">
+            <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
+              Product Review Analyzer © 2025 | Powered by FastAPI & React
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

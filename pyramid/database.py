@@ -6,7 +6,10 @@ import os
 class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://user:password@localhost/product_review_db"
     HUGGINGFACE_API_KEY: str = ""
+    HF_API_TOKEN: str = ""  # Alias for HUGGINGFACE_API_KEY
+    HUGGINGFACE_API_URL: str = "https://api-inference.huggingface.co/models/distilbert-base-uncased-finetuned-sst-2-english"
     GEMINI_API_KEY: str = ""
+    GEMINI_API_URL: str = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
     DEBUG: bool = True
     BACKEND_PORT: int = 8000
     BACKEND_HOST: str = "0.0.0.0"

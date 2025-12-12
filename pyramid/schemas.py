@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from datetime import datetime
 from enum import Enum
@@ -42,6 +42,26 @@ class ReviewResponse(BaseModel):
     created_at: datetime
     analyzed_at: Optional[datetime]
     
+    @field_validator('key_points', mode='before')
+    @classmethod
+    def parse_key_points(cls, v):
+        """Convert key_points from string to list"""
+        if v is None:
+            return []
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            if not v:
+                return []
+            # Try JSON first
+            try:
+                import json
+                return json.loads(v)
+            except:
+                # Fallback to comma-separated
+                return [p.strip() for p in v.split(",") if p.strip()]
+        return v
+    
     class Config:
         from_attributes = True
 
@@ -55,6 +75,24 @@ class AnalysisResponse(BaseModel):
     sentiment_score: float
     key_points: List[str]
     created_at: datetime
+    
+    @field_validator('key_points', mode='before')
+    @classmethod
+    def parse_key_points(cls, v):
+        """Convert key_points from string to list"""
+        if v is None:
+            return []
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            if not v:
+                return []
+            try:
+                import json
+                return json.loads(v)
+            except:
+                return [p.strip() for p in v.split(",") if p.strip()]
+        return v
     
     class Config:
         from_attributes = True

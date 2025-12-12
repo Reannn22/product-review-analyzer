@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
 import enum
+import json
 
 class SentimentEnum(str, enum.Enum):
     POSITIVE = "positive"
@@ -32,6 +33,17 @@ class Review(Base):
     analyzed_at = Column(DateTime, nullable=True)
     
     product = relationship("Product", back_populates="reviews")
+    
+    def get_key_points(self) -> list:
+        """Parse key_points from storage format to list"""
+        if not self.key_points:
+            return []
+        # Try JSON first
+        try:
+            return json.loads(self.key_points)
+        except:
+            # Fallback to comma-separated
+            return [p.strip() for p in self.key_points.split(",") if p.strip()]
 
 class AnalysisResult(Base):
     __tablename__ = "analysis_results"
